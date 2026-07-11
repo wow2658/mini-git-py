@@ -119,21 +119,21 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
 과제에서 요구한 핵심 기능들이 실제 소스 코드에 어떻게 구현되었는지 1:1로 대응시킨 내역이다. 코드 제목의 링크를 클릭하면 해당 파일의 구현부로 즉시 이동할 수 있다.
 
 ### 1. 저장소 및 브랜치 관리
-* **`INIT` (저장소 초기화)**: [commands.py:14](file:///c:/dev/B3-2/mini-git-py/commands.py#L14-L23)
+* **`INIT` (저장소 초기화)**: [commands.py:14](commands.py#L14-L23)
   ```python
   def cmd_init(repo: Repository, args: list[str]):
       repo.current_user = args[0]
       repo.branches['main'] = None
       repo.head = 'main'
   ```
-* **`BRANCH` (브랜치 생성/조회)**: [commands.py:25](file:///c:/dev/B3-2/mini-git-py/commands.py#L25-L38)
+* **`BRANCH` (브랜치 생성/조회)**: [commands.py:25](commands.py#L25-L38)
   ```python
   def cmd_branch(repo: Repository, args: list[str]):
       # 브랜치 목록 출력 및 HEAD 포인터를 복사하여 새 브랜치 생성
       current_commit = repo.branches.get(repo.head)
       repo.branches[branch_name] = current_commit
   ```
-* **`COMMIT` (커밋 생성)**: [commands.py:51](file:///c:/dev/B3-2/mini-git-py/commands.py#L51-L71)
+* **`COMMIT` (커밋 생성)**: [commands.py:51](commands.py#L51-L71)
   ```python
   def cmd_commit(repo: Repository, idx: InvertedIndex, args: list[str]):
       new_commit = Commit(message, repo.current_user, parents)
@@ -142,14 +142,14 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 2. 커밋 로그 및 탐색
-* **`LOG` (위상 정렬)**: [algorithms.py:120](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L120-L151)
+* **`LOG` (위상 정렬)**: [algorithms.py:120](algorithms.py#L120-L151)
   ```python
   def topological_sort_commits(repo) -> list[str]:
       # 진입 차수(in-degree)와 자식 노드 매핑을 통한 위상 정렬 구현
       in_degree = {c: len(repo.commits[c].parents) for c in repo.commits}
       ...
   ```
-* **`PATH` (최단 경로, BFS)**: [algorithms.py:61](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L61-L117)
+* **`PATH` (최단 경로, BFS)**: [algorithms.py:61](algorithms.py#L61-L117)
   ```python
   def shortest_path(repo, hash1: str, hash2: str) -> list[str] | None:
       queue = [(hash1, [hash1])] # 무방향 그래프 탐색(BFS)
@@ -157,14 +157,14 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 3. 검색 및 정렬
-* **`SEARCH` (역색인 검색)**: [index.py:28](file:///c:/dev/B3-2/mini-git-py/index.py#L28-L35)
+* **`SEARCH` (역색인 검색)**: [index.py:28](index.py#L28-L35)
   ```python
   class InvertedIndex:
       def search_by_keyword(self, keyword: str) -> list[str]:
           # O(1)에 가까운 역색인 딕셔너리 탐색
           return list(self.keyword_index.get(keyword, set()))
   ```
-* **`LOG --sort-by` (병합 정렬)**: [algorithms.py:1](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L1-L18)
+* **`LOG --sort-by` (병합 정렬)**: [algorithms.py:1](algorithms.py#L1-L18)
   ```python
   def merge_sort(arr, key=lambda x: x):
       # 파이썬 내장 sort() 대신 직접 구현한 병합 정렬 사용
@@ -173,7 +173,7 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 4. CLI 인터페이스
-* **무한 루프 REPL 및 명령 파싱**: [main.py:18](file:///c:/dev/B3-2/mini-git-py/main.py#L18-L69)
+* **무한 루프 REPL 및 명령 파싱**: [main.py:18](main.py#L18-L69)
   ```python
   while True:
       user_input = input("mini-git> ").strip()
