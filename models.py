@@ -1,4 +1,4 @@
-import uuid
+import hashlib
 from datetime import datetime
 
 class Commit:
@@ -7,12 +7,18 @@ class Commit:
     DAG (방향성 비순환 그래프)의 노드 역할을 합니다.
     """
     def __init__(self, message: str, author: str, parents: list[str]):
-        # 중복이 발생하지 않도록 UUID 활용, 편의상 앞 6자리 사용
-        self.hash = uuid.uuid4().hex[:6]
         self.message = message
         self.author = author
         self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.parents = parents  # 부모 커밋들의 hash 목록
+        
+        # [진짜 SHA-1 맛보기] 커밋의 모든 데이터를 하나로 뭉쳐서 해시를 생성합니다.
+        # 즉, 띄어쓰기 하나, 시간 1초만 달라도 완전히 다른 해시가 탄생합니다! (눈송이 효과)
+        content_to_hash = f"{self.message}|{self.author}|{self.timestamp}|{','.join(self.parents)}"
+        full_sha1 = hashlib.sha1(content_to_hash.encode('utf-8')).hexdigest()
+        
+        # 터미널 가독성을 위해 실제 Git의 short hash 방식처럼 앞 7자리만 자릅니다.
+        self.hash = full_sha1[:7]
 
     def __str__(self):
         return f"commit {self.hash} ({self.author}, {self.timestamp})\n{self.message}"
