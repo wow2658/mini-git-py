@@ -114,6 +114,24 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
 - `commands.py`: 각 명령어에 대응하는 핸들러 로직
 - `main.py`: `shlex` 모듈을 이용한 REPL 인터페이스 구성
 
+## 🎯 요구사항 구현 대응표 (코드 매핑)
+
+과제에서 요구한 5가지 핵심 기능이 실제 소스 코드의 어디에 구현되어 있는지 1:1로 대응시킨 표이다. 아래의 **[파일 및 라인]** 링크를 클릭하면 해당 코드의 실제 구현부로 즉시 이동하여 알고리즘을 확인할 수 있다.
+
+| 요구사항 분류 | 세부 명령어 / 기능 | 실제 구현 파일 및 핵심 라인 위치 |
+| :--- | :--- | :--- |
+| **1. 저장소 및 브랜치 관리** | `INIT` | [commands.py (L14-23)](file:///c:/dev/B3-2/mini-git-py/commands.py#L14-L23) |
+| | `BRANCH` | [commands.py (L25-38)](file:///c:/dev/B3-2/mini-git-py/commands.py#L25-L38) |
+| | `SWITCH` | [commands.py (L40-49)](file:///c:/dev/B3-2/mini-git-py/commands.py#L40-L49) |
+| | `COMMIT` | [commands.py (L51-71)](file:///c:/dev/B3-2/mini-git-py/commands.py#L51-L71) |
+| **2. 커밋 로그 및 탐색** | `LOG` (위상 정렬) | [algorithms.py (L120)](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L120) |
+| | `PATH` (최단 경로, BFS) | [algorithms.py (L61)](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L61) |
+| | `ANCESTORS` (조상 탐색, DFS) | [algorithms.py (L40)](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L40) |
+| **3. 검색 및 정렬** | `SEARCH` (역색인 검색) | [index.py (L28-L35)](file:///c:/dev/B3-2/mini-git-py/index.py#L28-L35) |
+| | `LOG --sort-by` (병합 정렬) | [algorithms.py (L1-L18)](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L1-L18) |
+| **4. CLI 인터페이스** | 무한 루프 REPL 및 파싱 | [main.py (L11-L69)](file:///c:/dev/B3-2/mini-git-py/main.py#L11-L69) |
+| **5. 필수 제출물** | 진입점(Entry Point) 설정 | [main.py (L1-L69)](file:///c:/dev/B3-2/mini-git-py/main.py#L1-L69) |
+
 ---
 
 ## 💡 과제 미션 분석: Git의 핵심 원리와 알고리즘적 의의
