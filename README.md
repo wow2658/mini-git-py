@@ -1,0 +1,145 @@
+# Mini Git
+
+CLI 기반의 Mini Git 구현 프로젝트입니다. 커밋 그래프, 정렬, 최단 경로, 역색인 검색 등의 자료구조와 알고리즘을 활용하여 Git의 핵심 동작을 시뮬레이션합니다.
+
+## 실행 방법
+
+```bash
+python main.py
+```
+
+명령 프롬프트(`mini-git> `)가 나타나면 아래 명령어들을 사용할 수 있습니다.
+
+## 지원 명령어
+
+- `init <user_name>`: 저장소 초기화, `main` 브랜치 생성, 사용자 설정
+- `commit "<message>"`: 새 커밋 생성 (메시지 공백 포함 시 따옴표 `""` 사용)
+- `branch`: 전체 브랜치 목록 출력
+- `branch <branch_name>`: 현재 `HEAD`를 가리키는 새 브랜치 생성
+- `switch <branch_name>`: 지정한 브랜치로 `HEAD` 이동
+- `log`: 위상 정렬을 기반으로 커밋 이력 출력 (최신/자식 커밋 먼저 출력)
+- `log --sort-by=date`: 날짜 순서대로 커밋 정렬 출력 (Merge Sort 기반)
+- `log --sort-by=author`: 작성자 순서대로 커밋 정렬 출력 (Merge Sort 기반)
+- `path <commit_hash_1> <commit_hash_2>`: 두 커밋 간의 무방향 최단 경로 출력
+- `ancestors <commit_hash>`: 지정한 커밋의 모든 조상 출력
+- `search <keyword>`: 키워드가 포함된 커밋 검색 (역색인 기반)
+- `search --author=<name>`: 특정 작성자의 커밋 검색 (역색인 기반)
+
+### 보너스 기능
+- `diff <file1> <file2>`: 두 텍스트 파일 내용 비교 (간단한 diff)
+- `merge <branch_name>`: 대상 브랜치와 현재 브랜치를 부모로 하는 병합 커밋 생성
+- `compare-sort`: 정렬 알고리즘 2개(병합 정렬, 퀵 정렬)의 성능 비교
+
+### 유틸리티
+- `help`: 전체 명령어 도움말 출력
+- `exit` 또는 `quit`: 프로그램 종료
+
+## 🚀 실행 예시 (Usage Scenario)
+
+실제 REPL 환경에서 테스트하고 실습할 수 있는 명령어 시퀀스와 그에 따른 예상 결과입니다.
+
+### 1. 저장소 초기화
+```text
+mini-git> init kim
+Initialized repository.
+Current branch: main
+Current user: kim
+```
+
+### 2. 기본 커밋 생성
+```text
+mini-git> commit "first commit"
+[main 1a2b3c] first commit
+
+mini-git> commit "second commit"
+[main 4d5e6f] second commit
+```
+
+### 3. 브랜치 생성 및 이동
+```text
+mini-git> branch feature-login
+Created branch: feature-login
+
+mini-git> branch
+Branches:
+* main
+  feature-login
+
+mini-git> switch feature-login
+Switched to branch: feature-login
+
+mini-git> commit "login form added"
+[feature-login 7g8h9i] login form added
+```
+
+### 4. 로그 확인 (위상 정렬)
+```text
+mini-git> log
+commit 7g8h9i (kim, 2026-07-11 10:00:00) [feature-login]
+login form added
+commit 4d5e6f (kim, 2026-07-11 09:50:00) [main]
+second commit
+commit 1a2b3c (kim, 2026-07-11 09:40:00)
+first commit
+```
+
+### 5. 병합 (Merge)
+```text
+mini-git> switch main
+Switched to branch: main
+
+mini-git> merge feature-login
+[main 0j1k2l] Merge branch 'feature-login' into main
+```
+
+### 6. 역색인 검색 (Search)
+```text
+mini-git> search "login"
+Found 1 commit(s):
+- 7g8h9i: login form added
+```
+
+### 7. 경로 탐색 (Path)
+*참고: 해시값은 실행 시마다 무작위로 생성되므로, 화면에 출력된 실제 해시값을 입력해야 합니다.*
+```text
+mini-git> path 1a2b3c 7g8h9i
+Path: 1a2b3c -> 4d5e6f -> 7g8h9i
+```
+
+## 기술 스택 및 구조
+- Python 3.10+ 표준 라이브러리 (정렬 및 그래프 외부 라이브러리 미사용)
+- `models.py`: `Commit` (DAG 노드), `Repository` (저장소 상태)
+- `algorithms.py`: `merge_sort`, `quick_sort`, `topological_sort_commits`, `shortest_path` 등
+- `index.py`: `InvertedIndex` (빠른 키워드 및 작성자 검색 지원)
+- `commands.py`: 각 명령어에 대응하는 핸들러 로직
+- `main.py`: `shlex` 모듈을 이용한 REPL 인터페이스 구성
+
+---
+
+## 에필로그: 이전 단계 (Mini-Redis 프로젝트)와의 연결 고리
+
+이 프로젝트(`mini-git-py`)는 이전 프로젝트인 **Mini-Redis (`mini-redis-py`)** 과의 도메인 차이점과 아키텍처적 연결 고리를 분석한다. 이 두 과제는 **"소프트웨어 엔지니어링의 근본을 바닥부터 조립한다"**는 철학에서 완벽하게 이어지는 프로젝트이다.
+
+### 1) 어떤 느낌으로 다른가? (차이점)
+가장 큰 차이는 **해결하고자 하는 문제(도메인)와 그에 필요한 핵심 자료구조**이다.
+* **Mini Redis (공간과 속도의 싸움)**
+  * **목표**: "한정된 메모리 공간에서 데이터를 얼마나 빠르고 효율적으로 저장하고, 쓸모없는 것을 버릴 것인가?"
+  * **핵심 자료구조**: 해시맵(Hash Map), 이중 연결 리스트, 최소 힙(Min-Heap), 동적 배열(Dynamic Array)
+  * **특징**: 파이썬의 기본 기능(`dict`, `list`)을 강제로 제한하고, 해시 충돌, LRU(캐시 축출), TTL(시간 만료) 등 최적화된 **'로우레벨(Low-level) 메모리 튜닝'**에 철저하게 집착하는 하드코어한 훈련이다.
+* **Mini Git (관계 추적과 탐색 알고리즘)**
+  * **목표**: "데이터들이 시간 흐름에 따라 얽히고설킨 복잡한 관계를 어떻게 추적하고 병합할 것인가?"
+  * **핵심 자료구조**: 방향성 비순환 그래프(DAG), 위상 정렬, 최단 경로 탐색(BFS/DFS), 역색인(Inverted Index)
+  * **특징**: 단순한 단일 데이터 저장을 넘어, 커밋(Commit)과 브랜치(Branch)라는 **점과 선(Graph)**의 관계망을 해석하는 **'하이레벨(High-level) 알고리즘 탐색'**에 집중한다.
+
+### 2) 어떤 느낌에서 이어지는가? (연결점)
+두 과제는 자료구조의 원리를 딛고 알고리즘으로 도약하는 형태로 강력하게 결속되어 있다.
+* **자료구조의 원리(Redis)를 딛고 알고리즘(Git)으로 도약**
+  * `Mini Git` 과제에서는 수많은 커밋을 빠르게 검색하기 위해 파이썬 내장 `dict`를 숨 쉬듯이 활용하게 된다. 그 `dict`가 내부적으로 어떻게 충돌을 방어하고 O(1)의 탐색 속도를 내는지 그 엔진을 밑바닥부터 깎아서 만든 것이 바로 앞선 `Mini Redis` 프로젝트이다. 즉, **Redis 프로젝트에서 뼈 빠지게 직접 깎은 '엔진(자료구조)'** 위에서 **Git 프로젝트의 '자동차(탐색 알고리즘)'**를 운전하는 셈이다.
+* **트리(Tree)에서 그래프(Graph)로의 확장**
+  * Redis에서 `MinHeap`과 `BST`를 만들며 부모-자식 노드의 개념(Tree)을 익혔다. Git의 커밋 히스토리는 이 트리가 더 복잡하게 얽힌 비순환 방향 그래프(DAG)이다. 트리 순회를 마스터했기 때문에 위상 정렬과 경로 탐색도 원리적으로 쉽게 접근할 수 있다.
+* **REPL 기반의 상용 서버 아키텍처 통일**
+  * 두 프로젝트 모두 무한 루프 기반의 REPL 구조를 가진다. 입력을 파싱하고 로직을 평가하는 이 패턴은 Node.js의 이벤트 루프나 실제 Redis C 서버가 동작하는 핵심 메커니즘과 동일하다. 계속해서 응답을 대기하는 살아 숨 쉬는 서버 애플리케이션을 설계했다는 점에서 궤를 같이한다.
+
+### 💡 풀스택(Full-Stack) 관점에서의 한 줄 요약
+결론적으로 `Mini Redis`가 한정된 자원 속에서 어떻게든 살아남는 **피지컬(기초 체력)** 훈련이었다면, `Mini Git`은 그 체력을 바탕으로 미로 속을 빠르고 정확하게 찾아가는 **뇌지컬(문제 해결 탐색)** 훈련이다. 
+Redis에서 **찰흙(메모리 배열)**을 빚고 **벽돌(연결 리스트, 해시맵)**을 구워내는 훈련을 끝냈으니, Git에서는 그 벽돌들을 가지고 **거대한 성벽(그래프)**을 쌓고 **길을 내는(알고리즘)** 훈련으로 넘어가는 완벽한 빌드업 흐름을 갖는다.
