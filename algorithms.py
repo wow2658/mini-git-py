@@ -1,3 +1,5 @@
+import struct
+
 def merge_sort(arr, key=lambda x: x):
     """
     병합 정렬 알고리즘 (Stable Sort).
@@ -345,3 +347,74 @@ def _backtrack_myers(trace, a, b, max_d) -> list[str]:
                 
     diff_res.reverse()
     return diff_res
+
+# ==========================================
+# 커스텀 해시 (Custom SHA-1) 구현
+# ==========================================
+def left_rotate(n, b):
+    # 32비트 비트 시프트(순환 이동) 연산
+    return ((n << b) | (n >> (32 - b))) & 0xffffffff
+
+def my_sha1(message: bytes) -> str:
+    """
+    입력된 메시지를 SHA-1 수학적 알고리즘을 거쳐 
+    고정된 40자리 16진수 해시로 변환합니다.
+    """
+    # 1. 매직 넘버 초기화 (SHA-1 스펙)
+    h0 = 0x67452301
+    h1 = 0xEFCDAB89
+    h2 = 0x98BADCFE
+    h3 = 0x10325476
+    h4 = 0xC3D2E1F0
+
+    # 2. 패딩(Padding) 작업: 데이터를 64바이트(512비트) 블록으로 맞춤
+    import struct
+    original_byte_len = len(message)
+    original_bit_len = original_byte_len * 8
+    message += b'\x80'
+    message += b'\x00' * ((56 - (original_byte_len + 1) % 64) % 64)
+    message += struct.pack('>Q', original_bit_len)
+
+    # 3. 64바이트 블록 단위로 쪼개서 복잡한 수학 연산 80회 반복
+    for i in range(0, len(message), 64):
+        chunk = message[i:i+64]
+        w = [0] * 80
+        for j in range(16):
+            w[j] = struct.unpack('>I', chunk[j*4:j*4+4])[0]
+        
+        # 메시지 확장 연산 (XOR 연산)
+        for j in range(16, 80):
+            w[j] = left_rotate(w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16], 1)
+            
+        a, b, c, d, e = h0, h1, h2, h3, h4
+        
+        # 80라운드의 비트 마스킹 및 논리 연산
+        for j in range(80):
+            if 0 <= j <= 19:
+                f = (b & c) | ((~b) & d)
+                k = 0x5A827999
+            elif 20 <= j <= 39:
+                f = b ^ c ^ d
+                k = 0x6ED9EBA1
+            elif 40 <= j <= 59:
+                f = (b & c) | (b & d) | (c & d)
+                k = 0x8F1BBCDC
+            elif 60 <= j <= 79:
+                f = b ^ c ^ d
+                k = 0xCA62C1D6
+                
+            temp = (left_rotate(a, 5) + f + e + k + w[j]) & 0xffffffff
+            e = d
+            d = c
+            c = left_rotate(b, 30)
+            b = a
+            a = temp
+            
+        h0 = (h0 + a) & 0xffffffff
+        h1 = (h1 + b) & 0xffffffff
+        h2 = (h2 + c) & 0xffffffff
+        h3 = (h3 + d) & 0xffffffff
+        h4 = (h4 + e) & 0xffffffff
+
+    # 4. 결과값 결합
+    return '%08x%08x%08x%08x%08x' % (h0, h1, h2, h3, h4)

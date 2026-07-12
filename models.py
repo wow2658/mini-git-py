@@ -1,5 +1,5 @@
-import hashlib
 from datetime import datetime
+from algorithms import my_sha1
 
 class Commit:
     """
@@ -12,10 +12,11 @@ class Commit:
         self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.parents = parents  # 부모 커밋들의 hash 목록
         
-        # [진짜 SHA-1 맛보기] 커밋의 모든 데이터를 하나로 뭉쳐서 해시를 생성합니다.
+        # [직접 만든 Custom SHA-1 적용] 
+        # 커밋의 모든 데이터를 하나로 뭉쳐서 해시를 생성합니다.
         # 즉, 띄어쓰기 하나, 시간 1초만 달라도 완전히 다른 해시가 탄생합니다! (눈송이 효과)
         content_to_hash = f"{self.message}|{self.author}|{self.timestamp}|{','.join(self.parents)}"
-        full_sha1 = hashlib.sha1(content_to_hash.encode('utf-8')).hexdigest()
+        full_sha1 = my_sha1(content_to_hash.encode('utf-8'))
         
         # 터미널 가독성을 위해 실제 Git의 short hash 방식처럼 앞 7자리만 자릅니다.
         self.hash = full_sha1[:7]
