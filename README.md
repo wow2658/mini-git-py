@@ -376,7 +376,7 @@ Git의 커밋 사이에는 물리적 거리나 비용(가중치)이 존재하지
 
 사용자가 `COMMIT "Add login feature"`라고 입력했을 때, 단순 띄어쓰기 기준으로 `split()`을 하면 4개의 단어로 쪼개지는 대참사가 일어난다. 우리 코드는 파이썬 내장 Shell 파서인 `shlex`를 사용하여 따옴표 안의 문장을 하나의 덩어리로 예쁘게 묶어낸다.
 
-* [main.py (29~33번째 줄)](file:///c:/dev/B3-2/mini-git-py/main.py#L29-L33)
+👉 관련 핵심 코드: [main.py:L29-L33](file:///c:/dev/B3-2/mini-git-py/main.py#L29-L33)
 
 ```python
 try:
@@ -390,7 +390,7 @@ except ValueError as e:
 
 사용자가 `InIt`, `INIT` 등 어떻게 입력하더라도, 파싱된 첫 번째 단어(명령어)에 무조건 `.lower()` 함수를 적용하여 소문자로 정규화한다. 덕분에 내부 로직은 항상 소문자 커맨드만 비교하면 된다.
 
-* [main.py (35~36번째 줄)](file:///c:/dev/B3-2/mini-git-py/main.py#L35-L36)
+👉 관련 핵심 코드: [main.py:L35-L36](file:///c:/dev/B3-2/mini-git-py/main.py#L35-L36)
 
 ```python
 cmd = tokens[0].lower()
@@ -401,7 +401,7 @@ args = tokens[1:]
 
 입력된 명령어가 예약어 리스트에 없을 경우, 사용자에게 어떤 명령어를 잘못 쳤는지 명확하게 피드백하는 표준 에러 메시지를 반환한다.
 
-* [main.py (64~65번째 줄)](file:///c:/dev/B3-2/mini-git-py/main.py#L64-L65)
+👉 관련 핵심 코드: [main.py:L64-L65](file:///c:/dev/B3-2/mini-git-py/main.py#L64-L65)
 
 ```python
 else:
