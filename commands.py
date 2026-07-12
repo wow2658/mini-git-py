@@ -8,7 +8,13 @@ from algorithms import (
     shortest_path, 
     get_ancestors, 
     merge_sort, 
-    quick_sort
+    quick_sort,
+    bubble_sort,
+    insertion_sort,
+    selection_sort,
+    heap_sort,
+    radix_sort,
+    python_sort
 )
 
 def cmd_init(repo: Repository, args: list[str]):
@@ -233,22 +239,33 @@ def cmd_compare_sort(args: list[str]):
             print("Invalid args")
             return
             
-    print(f"{'Size':>10} | {'Merge Sort (s)':>18} | {'Quick Sort (s)':>18}")
-    print("-" * 52)
+    header = f"{'Size':>6} | {'Bubble':>8} | {'Select':>8} | {'Insert':>8} | {'Merge':>8} | {'Quick':>8} | {'Heap':>8} | {'Radix':>8} | {'Python':>8}"
+    print(header)
+    print("-" * len(header))
+    
     for size in sizes:
         arr = [random.randint(0, 100000) for _ in range(size)]
         
-        arr_m = arr.copy()
-        arr_q = arr.copy()
+        times = {}
+        algs = [
+            ("Bubble", bubble_sort),
+            ("Select", selection_sort),
+            ("Insert", insertion_sort),
+            ("Merge", merge_sort),
+            ("Quick", quick_sort),
+            ("Heap", heap_sort),
+            ("Radix", radix_sort),
+            ("Python", python_sort)
+        ]
         
-        start = time.time()
-        merge_sort(arr_m)
-        end_m = time.time() - start
-        
-        start = time.time()
-        quick_sort(arr_q)
-        end_q = time.time() - start
-        print(f"{size:10} | {end_m:18.6f} | {end_q:18.6f}")
+        for name, func in algs:
+            arr_copy = arr.copy()
+            start = time.time()
+            func(arr_copy)
+            end = time.time() - start
+            times[name] = end
+            
+        print(f"{size:6} | {times['Bubble']:8.5f} | {times['Select']:8.5f} | {times['Insert']:8.5f} | {times['Merge']:8.5f} | {times['Quick']:8.5f} | {times['Heap']:8.5f} | {times['Radix']:8.5f} | {times['Python']:8.5f}")
 
 def cmd_help():
     help_text = """

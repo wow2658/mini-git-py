@@ -37,6 +37,100 @@ def quick_sort(arr, key=lambda x: x):
     return quick_sort(left, key) + middle + quick_sort(right, key)
 
 
+def bubble_sort(arr, key=lambda x: x):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(0, n - i - 1):
+            if key(arr[j]) > key(arr[j + 1]):
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+    return arr
+
+
+def insertion_sort(arr, key=lambda x: x):
+    for i in range(1, len(arr)):
+        key_item = arr[i]
+        j = i - 1
+        while j >= 0 and key(arr[j]) > key(key_item):
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key_item
+    return arr
+
+
+def selection_sort(arr, key=lambda x: x):
+    n = len(arr)
+    for i in range(n):
+        min_idx = i
+        for j in range(i + 1, n):
+            if key(arr[j]) < key(arr[min_idx]):
+                min_idx = j
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+    return arr
+
+
+def heap_sort(arr, key=lambda x: x):
+    def heapify(arr, n, i):
+        largest = i
+        l = 2 * i + 1
+        r = 2 * i + 2
+        if l < n and key(arr[l]) > key(arr[largest]):
+            largest = l
+        if r < n and key(arr[r]) > key(arr[largest]):
+            largest = r
+        if largest != i:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            heapify(arr, n, largest)
+            
+    n = len(arr)
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(arr, n, i)
+    for i in range(n - 1, 0, -1):
+        arr[i], arr[0] = arr[0], arr[i]
+        heapify(arr, i, 0)
+    return arr
+
+
+def counting_sort_for_radix(arr, exp, key):
+    n = len(arr)
+    output = [0] * n
+    count = [0] * 10
+    
+    for i in range(n):
+        index = (key(arr[i]) // exp) % 10
+        count[index] += 1
+        
+    for i in range(1, 10):
+        count[i] += count[i - 1]
+        
+    i = n - 1
+    while i >= 0:
+        index = (key(arr[i]) // exp) % 10
+        output[count[index] - 1] = arr[i]
+        count[index] -= 1
+        i -= 1
+        
+    for i in range(n):
+        arr[i] = output[i]
+
+def radix_sort(arr, key=lambda x: x):
+    if not arr: return arr
+    max_val = max(key(x) for x in arr)
+    exp = 1
+    while max_val // exp > 0:
+        counting_sort_for_radix(arr, exp, key)
+        exp *= 10
+    return arr
+
+
+def python_sort(arr, key=lambda x: x):
+    arr.sort(key=key)
+    return arr
+
+
 def get_ancestors(repo, start_hash: str) -> set[str]:
     """
     해당 커밋에서 도달 가능한 모든 조상 커밋의 해시를 반환합니다. (BFS 사용)
