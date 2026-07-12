@@ -5,7 +5,7 @@ from index import InvertedIndex
 from commands import (
     cmd_init, cmd_branch, cmd_switch, cmd_commit,
     cmd_log, cmd_path, cmd_ancestors, cmd_search,
-    cmd_diff, cmd_merge, cmd_compare_sort, cmd_help
+    cmd_diff, cmd_merge, cmd_compare_sort, cmd_compare_diff, cmd_help
 )
 
 def main():
@@ -61,6 +61,8 @@ def main():
             cmd_merge(repo, idx, args)
         elif cmd == 'compare-sort':
             cmd_compare_sort(args)
+        elif cmd == 'compare-diff':
+            cmd_compare_diff(args)
         else:
             print(f"Unknown command: {cmd}")
 

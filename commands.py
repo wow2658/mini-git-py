@@ -14,7 +14,9 @@ from algorithms import (
     selection_sort,
     heap_sort,
     radix_sort,
-    python_sort
+    python_sort,
+    myers_diff,
+    lcs_diff
 )
 
 def cmd_init(repo: Repository, args: list[str]):
@@ -171,32 +173,7 @@ def cmd_diff(args: list[str]):
     with open(f2, 'r', encoding='utf-8') as file2:
         lines2 = file2.readlines()
         
-    # LCS DP 배열
-    m, n = len(lines1), len(lines2)
-    dp = [[0] * (n + 1) for _ in range(m + 1)]
-    for i in range(1, m + 1):
-        for j in range(1, n + 1):
-            if lines1[i-1] == lines2[j-1]:
-                dp[i][j] = dp[i-1][j-1] + 1
-            else:
-                dp[i][j] = max(dp[i-1][j], dp[i][j-1])
-                
-    # 역추적하여 변경 내역 생성
-    i, j = m, n
-    diff_res = []
-    while i > 0 or j > 0:
-        if i > 0 and j > 0 and lines1[i-1] == lines2[j-1]:
-            diff_res.append("  " + lines1[i-1].rstrip())
-            i -= 1
-            j -= 1
-        elif j > 0 and (i == 0 or dp[i][j-1] >= dp[i-1][j]):
-            diff_res.append("+ " + lines2[j-1].rstrip())
-            j -= 1
-        elif i > 0 and (j == 0 or dp[i][j-1] < dp[i-1][j]):
-            diff_res.append("- " + lines1[i-1].rstrip())
-            i -= 1
-            
-    diff_res.reverse()
+    diff_res = myers_diff(lines1, lines2)
     for line in diff_res:
         print(line)
 
@@ -266,6 +243,39 @@ def cmd_compare_sort(args: list[str]):
             times[name] = end
             
         print(f"{size:6} | {times['Bubble']:8.5f} | {times['Select']:8.5f} | {times['Insert']:8.5f} | {times['Merge']:8.5f} | {times['Quick']:8.5f} | {times['Heap']:8.5f} | {times['Radix']:8.5f} | {times['Python']:8.5f}")
+
+def cmd_compare_diff(args: list[str]):
+    if len(args) != 2:
+        print("Invalid args")
+        return
+    f1, f2 = args[0], args[1]
+    if not os.path.exists(f1) or not os.path.exists(f2):
+        print("File not found.")
+        return
+        
+    with open(f1, 'r', encoding='utf-8') as file1:
+        lines1 = file1.readlines()
+    with open(f2, 'r', encoding='utf-8') as file2:
+        lines2 = file2.readlines()
+        
+    print(f"Comparing: {f1} vs {f2} (Lines: {len(lines1)} vs {len(lines2)})")
+    
+    start = time.time()
+    lcs_diff(lines1, lines2)
+    lcs_time = time.time() - start
+    
+    start = time.time()
+    myers_diff(lines1, lines2)
+    myers_time = time.time() - start
+    
+    print("-" * 40)
+    print(f"{'Algorithm':<15} | {'Time (seconds)':<15}")
+    print("-" * 40)
+    print(f"{'LCS DP':<15} | {lcs_time:.6f}")
+    print(f"{'Myers Diff':<15} | {myers_time:.6f}")
+    if myers_time > 0:
+        print(f"-> Myers Diff is {lcs_time / myers_time:.1f}x faster!")
+    print("-" * 40)
 
 def cmd_help():
     help_text = """

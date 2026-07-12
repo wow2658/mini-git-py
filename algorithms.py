@@ -242,3 +242,106 @@ def topological_sort_commits(repo) -> list[str]:
                 queue.append(child)
                 
     return result
+
+
+def lcs_diff(lines1: list[str], lines2: list[str]) -> list[str]:
+    """
+    기본 교육용 LCS Diff Algorithm (DP 기반).
+    시간 복잡도: O(N*M)
+    """
+    m, n = len(lines1), len(lines2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if lines1[i-1] == lines2[j-1]:
+                dp[i][j] = dp[i-1][j-1] + 1
+            else:
+                dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+                
+    i, j = m, n
+    diff_res = []
+    while i > 0 or j > 0:
+        if i > 0 and j > 0 and lines1[i-1] == lines2[j-1]:
+            diff_res.append("  " + lines1[i-1].rstrip())
+            i -= 1
+            j -= 1
+        elif j > 0 and (i == 0 or dp[i][j-1] >= dp[i-1][j]):
+            diff_res.append("+ " + lines2[j-1].rstrip())
+            j -= 1
+        elif i > 0 and (j == 0 or dp[i][j-1] < dp[i-1][j]):
+            diff_res.append("- " + lines1[i-1].rstrip())
+            i -= 1
+            
+    diff_res.reverse()
+    return diff_res
+
+
+def myers_diff(a: list[str], b: list[str]) -> list[str]:
+    """
+    Myers Diff Algorithm.
+    시간 복잡도: O(ND)
+    """
+    n = len(a)
+    m = len(b)
+    max_d = n + m
+    if max_d == 0:
+        return []
+        
+    v = [0] * (2 * max_d + 1)
+    trace = []
+    
+    for d in range(max_d + 1):
+        trace.append(v.copy())
+        for k in range(-d, d + 1, 2):
+            idx = max_d + k
+            
+            if k == -d or (k != d and v[idx - 1] < v[idx + 1]):
+                x = v[idx + 1]
+            else:
+                x = v[idx - 1] + 1
+                
+            y = x - k
+            
+            while x < n and y < m and a[x] == b[y]:
+                x += 1
+                y += 1
+                
+            v[idx] = x
+            
+            if x >= n and y >= m:
+                return _backtrack_myers(trace, a, b, max_d)
+                
+    return []
+
+def _backtrack_myers(trace, a, b, max_d) -> list[str]:
+    x, y = len(a), len(b)
+    diff_res = []
+    
+    for d in range(len(trace) - 1, -1, -1):
+        v = trace[d]
+        k = x - y
+        idx = max_d + k
+        
+        if k == -d or (k != d and v[idx - 1] < v[idx + 1]):
+            prev_k = k + 1
+        else:
+            prev_k = k - 1
+            
+        prev_x = trace[d - 1][max_d + prev_k] if d > 0 else 0
+        prev_y = prev_x - prev_k
+        
+        while x > prev_x and y > prev_y:
+            x -= 1
+            y -= 1
+            diff_res.append("  " + a[x].rstrip())
+            
+        if d > 0:
+            if x == prev_x:
+                y -= 1
+                diff_res.append("+ " + b[y].rstrip())
+            else:
+                x -= 1
+                diff_res.append("- " + a[x].rstrip())
+                
+    diff_res.reverse()
+    return diff_res
