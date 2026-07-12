@@ -1,5 +1,5 @@
 from datetime import datetime
-from algorithms import my_sha1
+from algorithms import my_sha256
 
 class Commit:
     """
@@ -12,14 +12,14 @@ class Commit:
         self.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.parents = parents  # 부모 커밋들의 hash 목록
         
-        # [직접 만든 Custom SHA-1 적용] 
-        # 커밋의 모든 데이터를 하나로 뭉쳐서 해시를 생성합니다.
-        # 즉, 띄어쓰기 하나, 시간 1초만 달라도 완전히 다른 해시가 탄생합니다! (눈송이 효과)
+        # [강력한 보안: Custom SHA-256 적용] 
+        # 커밋의 모든 데이터를 하나로 뭉쳐서 256비트 해시를 생성합니다.
+        # 즉, 띄어쓰기 하나만 달라도 완전히 다른 해시가 탄생합니다! (눈송이 효과)
         content_to_hash = f"{self.message}|{self.author}|{self.timestamp}|{','.join(self.parents)}"
-        full_sha1 = my_sha1(content_to_hash.encode('utf-8'))
+        full_sha256 = my_sha256(content_to_hash.encode('utf-8'))
         
         # 터미널 가독성을 위해 실제 Git의 short hash 방식처럼 앞 7자리만 자릅니다.
-        self.hash = full_sha1[:7]
+        self.hash = full_sha256[:7]
 
     def __str__(self):
         return f"commit {self.hash} ({self.author}, {self.timestamp})\n{self.message}"

@@ -349,72 +349,103 @@ def _backtrack_myers(trace, a, b, max_d) -> list[str]:
     return diff_res
 
 # ==========================================
-# 커스텀 해시 (Custom SHA-1) 구현
+# 커스텀 해시 (Custom SHA-256) 구현
 # ==========================================
-def left_rotate(n, b):
-    # 32비트 비트 시프트(순환 이동) 연산
-    return ((n << b) | (n >> (32 - b))) & 0xffffffff
+def right_rotate(n, b):
+    return ((n >> b) | (n << (32 - b))) & 0xffffffff
 
-def my_sha1(message: bytes) -> str:
-    """
-    입력된 메시지를 SHA-1 수학적 알고리즘을 거쳐 
-    고정된 40자리 16진수 해시로 변환합니다.
-    """
-    # 1. 매직 넘버 초기화 (SHA-1 스펙)
-    h0 = 0x67452301
-    h1 = 0xEFCDAB89
-    h2 = 0x98BADCFE
-    h3 = 0x10325476
-    h4 = 0xC3D2E1F0
+def _ch(e, f, g):
+    return (e & f) ^ (~e & g)
 
-    # 2. 패딩(Padding) 작업: 데이터를 64바이트(512비트) 블록으로 맞춤
+def _maj(a, b, c):
+    return (a & b) ^ (a & c) ^ (b & c)
+
+def _sigma0(a):
+    return right_rotate(a, 2) ^ right_rotate(a, 13) ^ right_rotate(a, 22)
+
+def _sigma1(e):
+    return right_rotate(e, 6) ^ right_rotate(e, 11) ^ right_rotate(e, 25)
+
+def _gamma0(w):
+    return right_rotate(w, 7) ^ right_rotate(w, 18) ^ (w >> 3)
+
+def _gamma1(w):
+    return right_rotate(w, 17) ^ right_rotate(w, 19) ^ (w >> 10)
+
+def my_sha256(message: bytes) -> str:
+    """
+    입력된 메시지를 SHA-256 수학적 알고리즘을 거쳐 
+    고정된 64자리 16진수 해시로 변환합니다. (외부 라이브러리 미사용)
+    """
     import struct
+    
+    # 1. 초기 해시값 (소수들의 제곱근 소수점 이하 비트)
+    H = [
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+    ]
+    
+    # 2. 64개의 상수 K (소수들의 세제곱근 소수점 이하 비트)
+    K = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ]
+
+    # 3. 패딩(Padding) 작업: 데이터를 64바이트(512비트) 블록 단위로 맞춤
     original_byte_len = len(message)
     original_bit_len = original_byte_len * 8
     message += b'\x80'
     message += b'\x00' * ((56 - (original_byte_len + 1) % 64) % 64)
     message += struct.pack('>Q', original_bit_len)
 
-    # 3. 64바이트 블록 단위로 쪼개서 복잡한 수학 연산 80회 반복
+    # 4. 64바이트 블록 단위로 쪼개서 64라운드 연산
     for i in range(0, len(message), 64):
         chunk = message[i:i+64]
-        w = [0] * 80
+        w = [0] * 64
         for j in range(16):
             w[j] = struct.unpack('>I', chunk[j*4:j*4+4])[0]
-        
-        # 메시지 확장 연산 (XOR 연산)
-        for j in range(16, 80):
-            w[j] = left_rotate(w[j-3] ^ w[j-8] ^ w[j-14] ^ w[j-16], 1)
             
-        a, b, c, d, e = h0, h1, h2, h3, h4
+        # 메시지 확장 연산 (64라운드)
+        for j in range(16, 64):
+            s0 = _gamma0(w[j-15])
+            s1 = _gamma1(w[j-2])
+            w[j] = (w[j-16] + s0 + w[j-7] + s1) & 0xffffffff
+            
+        a, b, c, d, e, f, g, h = H
         
-        # 80라운드의 비트 마스킹 및 논리 연산
-        for j in range(80):
-            if 0 <= j <= 19:
-                f = (b & c) | ((~b) & d)
-                k = 0x5A827999
-            elif 20 <= j <= 39:
-                f = b ^ c ^ d
-                k = 0x6ED9EBA1
-            elif 40 <= j <= 59:
-                f = (b & c) | (b & d) | (c & d)
-                k = 0x8F1BBCDC
-            elif 60 <= j <= 79:
-                f = b ^ c ^ d
-                k = 0xCA62C1D6
-                
-            temp = (left_rotate(a, 5) + f + e + k + w[j]) & 0xffffffff
-            e = d
+        # 64라운드 메인 로직
+        for j in range(64):
+            S1 = _sigma1(e)
+            ch_val = _ch(e, f, g)
+            temp1 = (h + S1 + ch_val + K[j] + w[j]) & 0xffffffff
+            S0 = _sigma0(a)
+            maj_val = _maj(a, b, c)
+            temp2 = (S0 + maj_val) & 0xffffffff
+            
+            h = g
+            g = f
+            f = e
+            e = (d + temp1) & 0xffffffff
             d = c
-            c = left_rotate(b, 30)
+            c = b
             b = a
-            a = temp
+            a = (temp1 + temp2) & 0xffffffff
             
-        h0 = (h0 + a) & 0xffffffff
-        h1 = (h1 + b) & 0xffffffff
-        h2 = (h2 + c) & 0xffffffff
-        h3 = (h3 + d) & 0xffffffff
-        h4 = (h4 + e) & 0xffffffff
+        # 블록 단위 결과 더하기
+        H[0] = (H[0] + a) & 0xffffffff
+        H[1] = (H[1] + b) & 0xffffffff
+        H[2] = (H[2] + c) & 0xffffffff
+        H[3] = (H[3] + d) & 0xffffffff
+        H[4] = (H[4] + e) & 0xffffffff
+        H[5] = (H[5] + f) & 0xffffffff
+        H[6] = (H[6] + g) & 0xffffffff
+        H[7] = (H[7] + h) & 0xffffffff
 
-    # 4. 결과값 결합
-    return '%08x%08x%08x%08x%08x' % (h0, h1, h2, h3, h4)
+    # 5. 64자리 16진수 문자열로 반환
+    return '%08x%08x%08x%08x%08x%08x%08x%08x' % tuple(H)
