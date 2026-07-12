@@ -106,6 +106,41 @@ mini-git> path 1a2b3c 7g8h9i
 Path: 1a2b3c -> 4d5e6f -> 7g8h9i
 ```
 
+### 8. 파일 비교 (Diff)
+두 텍스트 파일을 Myers 알고리즘으로 비교하여 추가(`+`), 삭제(`-`), 유지(` `) 내역을 출력한다.
+```text
+mini-git> diff scratch/text1.txt scratch/text2.txt
+  Line 0 - Some random content 54
+- Line 1 - Old content
++ Modified Line 1 by Hacker
+  Line 2 - Some random content 12
+```
+
+### 9. 정렬 알고리즘 벤치마크 (Compare Sort)
+8가지 정렬 알고리즘의 속도를 배열 크기별로 비교 측정한다.
+```text
+mini-git> compare-sort 500 1500 3000
+  Size |   Bubble |   Select |   Insert |    Merge |    Quick |     Heap |    Radix |   Python
+----------------------------------------------------------------------------------------------
+   500 |  0.01566 |  0.01335 |  0.00664 |  0.00102 |  0.00128 |  0.00136 |  0.00078 |  0.00008
+  1500 |  0.15211 |  0.11253 |  0.06510 |  0.00411 |  0.00493 |  0.00500 |  0.00234 |  0.00021
+  3000 |  0.64375 |  0.54572 |  0.28855 |  0.00768 |  0.01059 |  0.01132 |  0.00495 |  0.00044
+```
+
+### 10. LCS vs Myers Diff 벤치마크 (Compare Diff)
+기존 LCS 알고리즘과 상용 Myers 알고리즘의 속도를 비교한다.
+```text
+mini-git> compare-diff scratch/text1.txt scratch/text2.txt
+Comparing: scratch/text1.txt vs scratch/text2.txt (Lines: 2000 vs 2000)
+----------------------------------------
+Algorithm       | Time (seconds) 
+----------------------------------------
+LCS DP          | 0.792948
+Myers Diff      | 0.001488
+-> Myers Diff is 532.7x faster!
+----------------------------------------
+```
+
 ## 기술 스택 및 구조
 - Python 3.10+ 표준 라이브러리 (정렬 및 그래프 외부 라이브러리 미사용)
 - `models.py`: `Commit` (DAG 노드), `Repository` (저장소 상태)
@@ -119,21 +154,21 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
 과제에서 요구한 핵심 기능들이 실제 소스 코드에 어떻게 구현되었는지 1:1로 대응시킨 내역이다. 코드 제목의 링크를 클릭하면 해당 파일의 구현부로 즉시 이동할 수 있다.
 
 ### 1. 저장소 및 브랜치 관리
-* **`INIT` (저장소 초기화)**: [commands.py:L22](file:///c:/dev/B3-2/mini-git-py/commands.py#L22)
+* **`INIT` (저장소 초기화)**: [commands.py:14](commands.py#L14-L23)
   ```python
   def cmd_init(repo: Repository, args: list[str]):
       repo.current_user = args[0]
       repo.branches['main'] = None
       repo.head = 'main'
   ```
-* **`BRANCH` (브랜치 생성/조회)**: [commands.py:L33](file:///c:/dev/B3-2/mini-git-py/commands.py#L33)
+* **`BRANCH` (브랜치 생성/조회)**: [commands.py:25](commands.py#L25-L38)
   ```python
   def cmd_branch(repo: Repository, args: list[str]):
       # 브랜치 목록 출력 및 HEAD 포인터를 복사하여 새 브랜치 생성
       current_commit = repo.branches.get(repo.head)
       repo.branches[branch_name] = current_commit
   ```
-* **`COMMIT` (커밋 생성)**: [commands.py:L59](file:///c:/dev/B3-2/mini-git-py/commands.py#L59)
+* **`COMMIT` (커밋 생성)**: [commands.py:51](commands.py#L51-L71)
   ```python
   def cmd_commit(repo: Repository, idx: InvertedIndex, args: list[str]):
       new_commit = Commit(message, repo.current_user, parents)
@@ -142,14 +177,14 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 2. 커밋 로그 및 탐색
-* **`LOG` (위상 정렬)**: [algorithms.py:L214](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L214)
+* **`LOG` (위상 정렬)**: [algorithms.py:120](algorithms.py#L120-L151)
   ```python
   def topological_sort_commits(repo) -> list[str]:
       # 진입 차수(in-degree)와 자식 노드 매핑을 통한 위상 정렬 구현
       in_degree = {c: len(repo.commits[c].parents) for c in repo.commits}
       ...
   ```
-* **`PATH` (최단 경로, BFS)**: [algorithms.py:L155](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L155)
+* **`PATH` (최단 경로, BFS)**: [algorithms.py:61](algorithms.py#L61-L117)
   ```python
   def shortest_path(repo, hash1: str, hash2: str) -> list[str] | None:
       queue = [(hash1, [hash1])] # 무방향 그래프 탐색(BFS)
@@ -157,14 +192,14 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 3. 검색 및 정렬
-* **`SEARCH` (역색인 검색)**: [index.py:L28](file:///c:/dev/B3-2/mini-git-py/index.py#L28)
+* **`SEARCH` (역색인 검색)**: [index.py:28](index.py#L28-L35)
   ```python
   class InvertedIndex:
       def search_by_keyword(self, keyword: str) -> list[str]:
           # O(1)에 가까운 역색인 딕셔너리 탐색
           return list(self.keyword_index.get(keyword, set()))
   ```
-* **`LOG --sort-by` (병합 정렬)**: [algorithms.py:L1](file:///c:/dev/B3-2/mini-git-py/algorithms.py#L1)
+* **`LOG --sort-by` (병합 정렬)**: [algorithms.py:1](algorithms.py#L1-L18)
   ```python
   def merge_sort(arr, key=lambda x: x):
       # 파이썬 내장 sort() 대신 직접 구현한 병합 정렬 사용
@@ -173,7 +208,7 @@ Path: 1a2b3c -> 4d5e6f -> 7g8h9i
   ```
 
 ### 4. CLI 인터페이스
-* **무한 루프 REPL 및 명령 파싱**: [main.py:L18](file:///c:/dev/B3-2/mini-git-py/main.py#L18)
+* **무한 루프 REPL 및 명령 파싱**: [main.py:18](main.py#L18-L69)
   ```python
   while True:
       user_input = input("mini-git> ").strip()
