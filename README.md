@@ -1463,6 +1463,7 @@ def shortest_path(repo, hash1: str, hash2: str):
   + Modified Line 1 by Hacker
     Line 2 - Some random content 12
   ```
+  ![Diff 및 Myers 벤치마크 실행 증빙 스크린샷](docs/images/07_bonus_diff.png)
 * **핵심 구현 기술 및 개념 (Myers Diff 알고리즘)**:
   - 교육용 단순 LCS DP($O(N \times M)$)는 2,000줄 파일 비교 시 $4 \times 10^6$회 연산으로 메모리와 시간이 폭발합니다.
   - 본 프로젝트는 상용 Git과 동일한 **Eugene W. Myers의 $O(N \cdot D)$ Edit Graph 탐색 알고리즘**을 직접 구현했습니다.
@@ -1485,6 +1486,7 @@ def shortest_path(repo, hash1: str, hash2: str):
   mini-git> merge feature-login
   [main 0j1k2l] Merge branch 'feature-login' into main
   ```
+  ![Merge 브랜치 병합 및 DAG 위상 정렬 실행 증빙 스크린샷](docs/images/08_bonus_merge.png)
 * **핵심 구현 기술 및 개념 (다중 부모 DAG와 3-Way Merge)**:
   - 병합 커밋(Merge Commit)은 `parents = [current_head, target_head]`와 같이 **2개의 부모 해시를 동시에 가리키는 다중 부모 노드**를 생성하여 다이아몬드 그래프 구조를 형성합니다.
   - **위상 정렬 연동**: 부모가 2개이므로 병합 커밋의 초기 진입 차수는 `in_degree = 2`가 되며, 두 부모 커밋이 모두 화면에 출력된 후에만 자식인 병합 커밋이 출력되도록 하여 **DAG의 인과율(부모 우선 불변식)을 100% 보존**합니다.
@@ -1507,6 +1509,7 @@ def shortest_path(repo, hash1: str, hash2: str):
     1500 |  0.15211 |  0.11253 |  0.06510 |  0.00411 |  0.00493 |  0.00500 |  0.00234 |  0.00021
     3000 |  0.64375 |  0.54572 |  0.28855 |  0.00768 |  0.01059 |  0.01132 |  0.00495 |  0.00044
   ```
+  ![8종 정렬 알고리즘 벤치마크 실행 증빙 스크린샷](docs/images/09_bonus_compare_sort.png)
 * **핵심 분석 및 개념**:
   - **$O(N^2)$ 계열의 지수 폭발**: 크기가 6배 커질 때 버블 정렬 시간이 0.015초 → 0.643초로 약 41배 폭증하여 이론적 $O(N^2)$ 복잡도를 정확히 증명했습니다.
   - **소규모 데이터에서의 삽입 정렬 선방**: 작은 크기($N=500$)에서는 오버헤드가 적은 삽입 정렬(0.006s)이 우수하며, 이는 파이썬 Timsort가 내부적으로 32~64개 단위에 삽입 정렬을 쓰는 이유입니다.
