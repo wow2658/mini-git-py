@@ -135,23 +135,41 @@ def python_sort(arr, key=lambda x: x):
 
 def get_ancestors(repo, start_hash: str) -> set[str]:
     """
-    해당 커밋에서 도달 가능한 모든 조상 커밋의 해시를 반환합니다. (BFS 사용)
+    해당 커밋의 모든 조상 커밋(부모 및 상위 조상)의 해시 집합을 반환합니다. (BFS 사용)
+    자기 자신은 조상에 포함되지 않으며, 부모 노드부터 상위로 탐색합니다.
     """
     if start_hash not in repo.commits:
         return set()
     
     visited = set()
-    queue = [start_hash]
+    queue = list(repo.commits[start_hash].parents)
     
     while queue:
         current = queue.pop(0)
         if current not in visited:
             visited.add(current)
-            commit = repo.commits[current]
-            for parent in commit.parents:
-                queue.append(parent)
+            if current in repo.commits:
+                commit = repo.commits[current]
+                for parent in commit.parents:
+                    queue.append(parent)
                 
     return visited
+
+
+def build_children_map(repo) -> dict[str, list[str]]:
+    """
+    커밋 객체의 parents(부모) 목록을 역으로 뒤집어,
+    부모 커밋 해시 -> 자식 커밋 해시 목록 매핑(순방향 간선)을 생성합니다.
+    LOG(위상 정렬) 및 PATH(무방향 최단 경로) 탐색에서 공통으로 재사용됩니다.
+    """
+    children_map = {c: [] for c in repo.commits}
+    for c_hash, c_obj in repo.commits.items():
+        for p in c_obj.parents:
+            if p in children_map:
+                children_map[p].append(c_hash)
+            else:
+                children_map[p] = [c_hash]
+    return children_map
 
 
 def shortest_path(repo, hash1: str, hash2: str) -> list[str] | None:
@@ -165,14 +183,8 @@ def shortest_path(repo, hash1: str, hash2: str) -> list[str] | None:
     if hash1 == hash2:
         return [hash1]
         
-    # 자식 방향 간선을 위한 매핑 구성
-    children_map = {c: [] for c in repo.commits}
-    for c_hash, c_obj in repo.commits.items():
-        for p in c_obj.parents:
-            if p in children_map:
-                children_map[p].append(c_hash)
-            else:
-                children_map[p] = [c_hash]
+    # 공통 함수를 재사용하여 자식 방향 순방향 간선 맵 획득
+    children_map = build_children_map(repo)
                 
     # BFS 탐색 (모든 최단 경로 찾기)
     distances = {hash1: 0}
@@ -219,14 +231,8 @@ def topological_sort_commits(repo) -> list[str]:
     부모 커밋이 자식 커밋보다 항상 먼저 출력되도록 정렬합니다.
     """
     in_degree = {c: len(repo.commits[c].parents) for c in repo.commits}
-    children_map = {c: [] for c in repo.commits}
-    
-    for c_hash, c_obj in repo.commits.items():
-        for p in c_obj.parents:
-            if p in children_map:
-                children_map[p].append(c_hash)
-            else:
-                children_map[p] = [c_hash]
+    # 공통 함수를 재사용하여 자식 방향 순방향 간선 맵 획득
+    children_map = build_children_map(repo)
                 
     # 진입 차수가 0인 커밋(부모가 없는 최초의 커밋들)부터 시작
     queue = [c for c in repo.commits if in_degree[c] == 0]
