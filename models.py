@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from algorithms import my_sha256
 
 class Commit:
@@ -33,10 +34,10 @@ class Repository:
     def __init__(self):
         self.commits: dict[str, Commit] = {}  # hash -> Commit
         self.branches: dict[str, str] = {}    # branch_name -> commit_hash
-        self.head: str | None = None          # 현재 체크아웃된 브랜치 이름
-        self.current_user: str | None = None  # 현재 사용자 이름
+        self.head: Optional[str] = None          # 현재 체크아웃된 브랜치 이름
+        self.current_user: Optional[str] = None  # 현재 사용자 이름
 
-    def get_head_commit(self) -> Commit | None:
+    def get_head_commit(self) -> Optional[Commit]:
         """현재 HEAD가 가리키는 커밋을 반환합니다."""
         if not self.head or self.head not in self.branches:
             return None

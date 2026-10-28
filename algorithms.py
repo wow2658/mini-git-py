@@ -1,4 +1,5 @@
 import struct
+from typing import Optional
 
 def merge_sort(arr, key=lambda x: x):
     """
@@ -172,7 +173,7 @@ def build_children_map(repo) -> dict[str, list[str]]:
     return children_map
 
 
-def shortest_path(repo, hash1: str, hash2: str) -> list[str] | None:
+def shortest_path(repo, hash1: str, hash2: str) -> Optional[list[str]]:
     """
     두 커밋 간의 최단 경로를 반환합니다. 간선을 무방향으로 취급합니다.
     경로가 여러 개일 경우 사전순(lexicographical)으로 가장 작은 경로를 선택합니다.
@@ -335,7 +336,8 @@ def _backtrack_myers(trace, a, b, max_d) -> list[str]:
         else:
             prev_k = k - 1
             
-        prev_x = trace[d - 1][max_d + prev_k] if d > 0 else 0
+        # trace[d]는 d 단계 시작 직전, 즉 d-1 단계까지의 경로를 담는다.
+        prev_x = v[max_d + prev_k] if d > 0 else 0
         prev_y = prev_x - prev_k
         
         while x > prev_x and y > prev_y:

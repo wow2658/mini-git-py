@@ -41,6 +41,9 @@ def cmd_branch(repo: Repository, args: list[str]):
     if repo.head is None:
         print("Invalid state: HEAD is not set. Run INIT first.")
         return
+    if branch_name in repo.branches:
+        print(f"Branch already exists: {branch_name}")
+        return
     current_commit = repo.branches.get(repo.head)
     repo.branches[branch_name] = current_commit
     print(f"Created branch: {branch_name}")

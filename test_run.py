@@ -1,4 +1,6 @@
 import subprocess
+import sys
+from pathlib import Path
 
 scenario = """init kim
 commit "first commit"
@@ -13,11 +15,24 @@ search "login"
 exit
 """
 
-process = subprocess.Popen(["python", "main.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding='utf-8')
-stdout, stderr = process.communicate(scenario)
+def main():
+    result = subprocess.run(
+        [sys.executable, '-B', str(Path(__file__).with_name('main.py'))],
+        input=scenario, capture_output=True, text=True, encoding='utf-8', timeout=30,
+    )
+    print("--- STANDARD OUTPUT ---")
+    print(result.stdout)
+    if result.stderr:
+        print("--- STANDARD ERROR ---")
+        print(result.stderr)
+    if result.returncode:
+        return result.returncode
+    expected = ["Initialized repository.", "Created branch: feature-login", "Found 1 commit(s):"]
+    if any(text not in result.stdout for text in expected):
+        print("Smoke test failed: expected scenario output is missing.", file=sys.stderr)
+        return 1
+    return 0
 
-print("--- STANDARD OUTPUT ---")
-print(stdout)
-if stderr:
-    print("--- STANDARD ERROR ---")
-    print(stderr)
+
+if __name__ == '__main__':
+    sys.exit(main())

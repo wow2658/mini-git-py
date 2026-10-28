@@ -6,11 +6,16 @@ CLI 기반의 Mini Git 구현 프로젝트이다. 커밋 그래프, 정렬, 최�
 
 ```bash
 
-python main.py
+python3 main.py
 
 ```
 
 명령 프롬프트(`mini-git> `)가 나타나면 아래 명령어들을 사용할 수 있다.
+
+Python 3.9 이상에서 실행할 수 있다. 기본 시나리오는 `python3 -B test_run.py`,
+회귀 테스트는 `python3 -B -m unittest discover -v`로 실행한다.
+테스트 스크립트는 현재 Python 실행 파일을 사용하므로 별도 `python` 별칭이 필요 없다.
+회귀 테스트는 diff의 결과 복원·최소 변경 수와 기존 브랜치 덮어쓰기 방지를 확인한다.
 
 ## 지원 명령어
 
@@ -234,7 +239,7 @@ Myers Diff      | 0.001488
 
 ## 기술 스택 및 구조
 
-- Python 3.10+ 표준 라이브러리 (정렬 및 그래프 외부 라이브러리 미사용)
+- Python 3.9+ 표준 라이브러리 (정렬 및 그래프 외부 라이브러리 미사용)
 
 - `models.py`: `Commit` (DAG 노드), `Repository` (저장소 상태)
 
